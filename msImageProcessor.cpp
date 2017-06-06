@@ -157,30 +157,20 @@ msImageProcessor::~msImageProcessor( void )
 /*        the image segmenter class to be segmented.   */
 /*******************************************************/
 
-void msImageProcessor::DefineImage(byte *data_, imageType type, int height_, int width_)
+void msImageProcessor::DefineImage(byte *data_, int height_, int width_, int dim)
 {
-
-	//obtain image dimension from image type
-	int dim;
-	if(type == COLOR)
-		dim	= 3;
-	else
-		dim = 1;
-
-	//perfor rgb to luv conversion
-	int		i;
+	//perform rgb to luv conversion
 	float	*luv	= new float [height_*width_*dim];
-	if(dim == 1)
+	if (dim == 1 || dim > 3)
 	{
-		for(i = 0; i < height_*width_; i++)
+		for(int i = 0; i < height_*width_*dim; i++)
 			luv[i]	= (float)(data_[i]);
 	}
 	else
 	{
-		for(i = 0; i < height_*width_; i++)
+		for(int i = 0; i < height_*width_; i++)
 			RGBtoLUV(&data_[dim*i], &luv[dim*i]);
 	}
-
 	//define input defined on a lattice using mean shift base class
 	DefineLInput(luv, height_, width_, dim);
 

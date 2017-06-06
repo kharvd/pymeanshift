@@ -143,7 +143,7 @@ public:
   //<--------------------------------------------------->|//
   //--\\||//--\\||//--\\||//--\\||//--\\||//--\\||//--\\||//
 
-  void DefineImage(byte*,imageType, int, int);
+  void DefineImage(byte*, int, int, int);
   void DefineBgImage(byte*, imageType , int , int );
 
 

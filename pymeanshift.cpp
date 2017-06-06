@@ -21,6 +21,8 @@
 #include <numpy/arrayobject.h>
 #include <cstring>
 
+#include <iostream>
+
 #include "msImageProcessor.h"
 
 
@@ -88,15 +90,15 @@ static PyObject* segment(PyObject* self, PyObject* args)
     nbDimensions = 2;
     dimensions[0] = PyArray_DIM(inputImage, 0);
     dimensions[1] = PyArray_DIM(inputImage, 1);
-    imageSegmenter.DefineImage((unsigned char*)PyArray_DATA(inputImage), GRAYSCALE, dimensions[0], dimensions[1]);
+    imageSegmenter.DefineImage((unsigned char*)PyArray_DATA(inputImage), dimensions[0], dimensions[1], 1);
   }
   else if(PyArray_NDIM(inputImage) == 3)
   {
     nbDimensions = 3;
     dimensions[0] = PyArray_DIM(inputImage, 0);
-    dimensions[1] = PyArray_DIM(inputImage, 1);      
-    dimensions[2] = 3;
-    imageSegmenter.DefineImage((unsigned char*)PyArray_DATA(inputImage), COLOR, dimensions[0], dimensions[1]);
+    dimensions[1] = PyArray_DIM(inputImage, 1);
+    dimensions[2] = PyArray_DIM(inputImage, 2);
+    imageSegmenter.DefineImage((unsigned char*)PyArray_DATA(inputImage), dimensions[0], dimensions[1], dimensions[2]);
   }
   else
   {
