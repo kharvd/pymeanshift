@@ -81,7 +81,7 @@ const double RGB[3][3] = {	{  3.2405, -1.5371, -0.4985 },
 typedef unsigned char byte;
 
 //define enumerations
-enum imageType {GRAYSCALE, COLOR};
+enum imageType {GRAYSCALE, COLOR, MULTICHANNEL};
 
 //define prototype
 class msImageProcessor: public MeanShift {

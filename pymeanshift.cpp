@@ -82,6 +82,8 @@ static PyObject* segment(PyObject* self, PyObject* args)
   inputImage = PyArray_FROM_OTF(array, NPY_UBYTE, NPY_IN_ARRAY);
   if(inputImage == NULL)
     return NULL;
+
+  imageType type;
     
   // Check that the array is 2 dimentional (gray scale image) or 3 dimensional (RGB color image),
   // and initialize segmenter
@@ -90,6 +92,7 @@ static PyObject* segment(PyObject* self, PyObject* args)
     nbDimensions = 2;
     dimensions[0] = PyArray_DIM(inputImage, 0);
     dimensions[1] = PyArray_DIM(inputImage, 1);
+    type = GRAYSCALE;
     imageSegmenter.DefineImage((unsigned char*)PyArray_DATA(inputImage), dimensions[0], dimensions[1], 1);
   }
   else if(PyArray_NDIM(inputImage) == 3)
@@ -98,6 +101,7 @@ static PyObject* segment(PyObject* self, PyObject* args)
     dimensions[0] = PyArray_DIM(inputImage, 0);
     dimensions[1] = PyArray_DIM(inputImage, 1);
     dimensions[2] = PyArray_DIM(inputImage, 2);
+    type = dimensions[2] == 3 ? COLOR : MULTICHANNEL;
     imageSegmenter.DefineImage((unsigned char*)PyArray_DATA(inputImage), dimensions[0], dimensions[1], dimensions[2]);
   }
   else
@@ -108,11 +112,16 @@ static PyObject* segment(PyObject* self, PyObject* args)
   }
     
   // Create output images
-  segmentedImage = (PyArrayObject *) PyArray_FromDims(nbDimensions, dimensions, PyArray_UBYTE);
+  if (type == MULTICHANNEL) {
+    segmentedImage = (PyArrayObject *) PyArray_FromDims(nbDimensions, dimensions, PyArray_FLOAT32);
+  } else {
+    segmentedImage = (PyArrayObject *) PyArray_FromDims(nbDimensions, dimensions, PyArray_UBYTE);
+  }
+
   if(!segmentedImage)
   {
     Py_DECREF(inputImage);
-    return NULL;  
+    return NULL;
   }
 
   labelImage = (PyArrayObject *) PyArray_FromDims(2, dimensions, PyArray_INT);
@@ -137,7 +146,17 @@ static PyObject* segment(PyObject* self, PyObject* args)
     
   // Segment image and get segmented image
   imageSegmenter.Segment(radiusS[0], radiusR[0], minDensity[0], speedUpLevel);
-  imageSegmenter.GetResults((unsigned char*)PyArray_DATA(segmentedImage));
+
+  if (type == MULTICHANNEL) {
+    imageSegmenter.GetRawData((float *)PyArray_DATA(segmentedImage));
+  } else {
+    imageSegmenter.GetResults((unsigned char*)PyArray_DATA(segmentedImage));
+  }
+
+  if (imageSegmenter.ErrorStatus != EL_OKAY) {
+    PyErr_SetString(PyExc_ValueError, imageSegmenter.ErrorMessage);
+    return NULL;
+  }
     
   // Get labels images and number of regions
   nbRegions = imageSegmenter.GetRegions( &tmpLabels, &tmpModes, &tmpModePointCounts);
