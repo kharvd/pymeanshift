@@ -77,9 +77,9 @@ static PyObject* segment(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_ValueError, "Speedup level must be 0 (no speedup), 1 (medium speedup), or 2 (high speedup)");
     return NULL;
   }
-    
-  // Get ndarray object having 8 unsigned bits per element (uchar) and 
-  inputImage = PyArray_FROM_OTF(array, NPY_UBYTE, NPY_IN_ARRAY);
+
+  // Get ndarray object having 8 unsigned bits per element (uchar) and
+  inputImage = PyArray_FROM_OTF(array, NPY_NOTYPE, NPY_IN_ARRAY);
   if(inputImage == NULL)
     return NULL;
 
@@ -92,8 +92,8 @@ static PyObject* segment(PyObject* self, PyObject* args)
     nbDimensions = 2;
     dimensions[0] = PyArray_DIM(inputImage, 0);
     dimensions[1] = PyArray_DIM(inputImage, 1);
+    dimensions[2] = 1;
     type = GRAYSCALE;
-    imageSegmenter.DefineImage((unsigned char*)PyArray_DATA(inputImage), dimensions[0], dimensions[1], 1);
   }
   else if(PyArray_NDIM(inputImage) == 3)
   {
@@ -102,7 +102,6 @@ static PyObject* segment(PyObject* self, PyObject* args)
     dimensions[1] = PyArray_DIM(inputImage, 1);
     dimensions[2] = PyArray_DIM(inputImage, 2);
     type = dimensions[2] == 3 ? COLOR : MULTICHANNEL;
-    imageSegmenter.DefineImage((unsigned char*)PyArray_DATA(inputImage), dimensions[0], dimensions[1], dimensions[2]);
   }
   else
   {
@@ -110,11 +109,23 @@ static PyObject* segment(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_ValueError, "Array must be 2 dimentional (gray scale image) or 3 dimensional (RGB color image)");
     return NULL;
   }
-    
-  // Create output images
+
+  Py_DECREF(inputImage);
+
   if (type == MULTICHANNEL) {
+    inputImage = PyArray_FROM_OTF(array, NPY_FLOAT, NPY_IN_ARRAY);
+  } else {
+    inputImage = PyArray_FROM_OTF(array, NPY_UBYTE, NPY_IN_ARRAY);
+  }
+
+  if(inputImage == NULL)
+    return NULL;
+
+  if (type == MULTICHANNEL) {
+    imageSegmenter.DefineMultichannelImage((float*)PyArray_DATA(inputImage), dimensions[0], dimensions[1], dimensions[2]);
     segmentedImage = (PyArrayObject *) PyArray_FromDims(nbDimensions, dimensions, PyArray_FLOAT32);
   } else {
+    imageSegmenter.DefineImage((unsigned char*)PyArray_DATA(inputImage), dimensions[0], dimensions[1], dimensions[2]);
     segmentedImage = (PyArrayObject *) PyArray_FromDims(nbDimensions, dimensions, PyArray_UBYTE);
   }
 

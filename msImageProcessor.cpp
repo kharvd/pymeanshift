@@ -161,9 +161,9 @@ void msImageProcessor::DefineImage(byte *data_, int height_, int width_, int dim
 {
 	//perform rgb to luv conversion
 	float	*luv	= new float [height_*width_*dim];
-	if (dim == 1 || dim > 3)
+	if (dim == 1)
 	{
-		for(int i = 0; i < height_*width_*dim; i++)
+		for(int i = 0; i < height_*width_; i++)
 			luv[i]	= (float)(data_[i]);
 	}
 	else
@@ -195,6 +195,27 @@ void msImageProcessor::DefineImage(byte *data_, int height_, int width_, int dim
 
 }
 
+void msImageProcessor::DefineMultichannelImage(float* data_, int height_, int width_, int dim)
+{
+	//define input defined on a lattice using mean shift base class
+	DefineLInput(data_, height_, width_, dim);
+
+	//Define a default kernel if it has not been already
+	//defined by user
+	if(!h)
+	{
+		//define default kernel paramerters...
+		kernelType	k[2]		= {Uniform, Uniform};
+		int			P[2]		= {2, N};
+		float		tempH[2]	= {1.0 , 1.0};
+
+		//define default kernel in mean shift base class
+		DefineKernel(k, tempH, P, 2);
+	}
+
+	//done.
+	return;
+}
 void msImageProcessor::DefineBgImage(byte* data_, imageType type, int height_, int width_)
 {
 

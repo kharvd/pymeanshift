@@ -144,6 +144,7 @@ public:
   //--\\||//--\\||//--\\||//--\\||//--\\||//--\\||//--\\||//
 
   void DefineImage(byte*, int, int, int);
+	void DefineMultichannelImage(float*, int, int, int);
   void DefineBgImage(byte*, imageType , int , int );
 
 
